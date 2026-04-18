@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:8081/api/v1',
   timeout: 10000,
 })
 
@@ -32,32 +32,53 @@ api.interceptors.response.use(
 
 // Auth API functions
 export const authApi = {
-  login: async (username, password) => {
-    const response = await api.post('/v1/users/login', null, {
-      params: { username, password },
-    })
+  login: async (phone, password) => {
+    const response = await api.post('/users/login', new URLSearchParams({
+      phone,
+      password
+    }))
     return response
   },
 
-  register: async (username, password, phone) => {
-    const response = await api.post('/v1/users/register', null, {
-      params: { username, password, phone },
-    })
+  register: async (phone, password, nickname) => {
+    const response = await api.post('/users/register', new URLSearchParams({
+      phone,
+      password,
+      nickname
+    }))
     return response
   },
 
   logout: async () => {
-    const response = await api.post('/v1/users/logout')
+    const response = await api.post('/users/logout')
     return response
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/v1/users/me')
+    const response = await api.get('/users/me')
     return response
   },
 
-  getUserByUsername: async (username) => {
-    const response = await api.get(`/v1/users/${username}`)
+  updateUserInfo: async (nickname, avatar, sportPreference, intro) => {
+    const response = await api.put('/users/me', new URLSearchParams({
+      nickname,
+      avatar,
+      sportPreference,
+      intro
+    }))
+    return response
+  },
+
+  changePassword: async (oldPassword, newPassword) => {
+    const response = await api.put('/users/me/password', new URLSearchParams({
+      oldPassword,
+      newPassword
+    }))
+    return response
+  },
+
+  getUserById: async (userId) => {
+    const response = await api.get(`/users/admin/${userId}`)
     return response
   },
 }

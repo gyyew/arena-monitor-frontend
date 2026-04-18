@@ -14,11 +14,13 @@ const Login = () => {
 
   const onFinish = async (values) => {
     setLoading(true)
-    const result = await login(values.username, values.password)
+    const result = await login(values.phone, values.password)
     setLoading(false)
 
     if (result.success) {
       navigate('/')
+    } else {
+      message.error(result.error || 'Login failed')
     }
   }
 
@@ -26,8 +28,8 @@ const Login = () => {
     <div style={styles.container}>
       <Card style={styles.card} variant="borderless">
         <div style={styles.header}>
-          <Title level={2} style={styles.title}>Login</Title>
-          <p style={styles.subtitle}>Welcome back! Please login to continue.</p>
+          <Title level={2} style={styles.title}>登录</Title>
+          <p style={styles.subtitle}>欢迎回来！请登录继续。</p>
         </div>
 
         <Form
@@ -39,23 +41,23 @@ const Login = () => {
           requiredMark={false}
         >
           <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please enter your username' }]}
+            name="phone"
+            rules={[{ required: true, message: '请输入手机号' }]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Username"
+              placeholder="手机号"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
+            rules={[{ required: true, message: '请输入密码' }]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Password"
+              placeholder="密码"
               size="large"
             />
           </Form.Item>
@@ -69,14 +71,14 @@ const Login = () => {
               size="large"
               style={styles.button}
             >
-              Login
+              登录
             </Button>
           </Form.Item>
         </Form>
 
         <div style={styles.footer}>
-          <span>Don't have an account? </span>
-          <Link to="/register">Register now</Link>
+          <span>还没有账号？ </span>
+          <Link to="/register">立即注册</Link>
         </div>
       </Card>
     </div>

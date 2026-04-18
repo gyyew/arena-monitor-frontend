@@ -39,9 +39,9 @@ export const AuthProvider = ({ children }) => {
     initializeAuth()
   }, [])
 
-  const login = async (username, password) => {
+  const login = async (phone, password) => {
     try {
-      const response = await authApi.login(username, password)
+      const response = await authApi.login(phone, password)
       
       // Extract token from response (adjust based on actual backend response structure)
       const token = response.token || response.data?.token || response.data
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
         
         // Fetch user data after login
         const userData = await authApi.getCurrentUser()
-        setUser(userData)
+        setUserState(userData)
         setUser(userData)
         
         console.log('Login successful!')
@@ -68,15 +68,44 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const register = async (username, password, phone) => {
+  const register = async (phone, password, nickname) => {
     try {
-      await authApi.register(username, password, phone)
+      await authApi.register(phone, password, nickname)
       console.log('Registration successful! Please login.')
       return { success: true }
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Registration failed'
       console.error('Registration error:', errorMsg)
       return { success: false, error: errorMsg }
+    }
+  }
+
+  const updateUserInfo = async (nickname, avatar, sportPreference, intro) => {
+    try {
+      const response = await authApi.updateUserInfo(nickname, avatar, sportPreference, intro)
+      if (response.success) {
+        const updatedUser = response.data
+        setUserState(updatedUser)
+        setUser(updatedUser)
+        return { success: true, user: updatedUser }
+      }
+      return { success: false, message: response.message || 'Update failed' }
+    } catch (error) {
+      console.error('Update user info error:', error)
+      return { success: false, message: error.response?.data?.message || 'Update failed' }
+    }
+  }
+
+  const changePassword = async (oldPassword, newPassword) => {
+    try {
+      const response = await authApi.changePassword(oldPassword, newPassword)
+      if (response.success) {
+        return { success: true }
+      }
+      return { success: false, message: response.message || 'Password change failed' }
+    } catch (error) {
+      console.error('Change password error:', error)
+      return { success: false, message: error.response?.data?.message || 'Password change failed' }
     }
   }
 
@@ -103,6 +132,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUserInfo,
+    changePassword,
     isAuthenticated: !!token,
   }
 

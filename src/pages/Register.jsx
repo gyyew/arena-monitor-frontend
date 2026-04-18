@@ -14,11 +14,14 @@ const Register = () => {
 
   const onFinish = async (values) => {
     setLoading(true)
-    const result = await register(values.username, values.password, values.phone)
+    const result = await register(values.phone, values.password, values.nickname)
     setLoading(false)
 
     if (result.success) {
+      message.success('注册成功！请登录。')
       navigate('/login')
+    } else {
+      message.error(result.error || '注册失败')
     }
   }
 
@@ -26,8 +29,8 @@ const Register = () => {
     <div style={styles.container}>
       <Card style={styles.card} variant="borderless">
         <div style={styles.header}>
-          <Title level={2} style={styles.title}>Register</Title>
-          <p style={styles.subtitle}>Create your account to get started.</p>
+          <Title level={2} style={styles.title}>注册</Title>
+          <p style={styles.subtitle}>创建账号开始使用。</p>
         </div>
 
         <Form
@@ -39,15 +42,15 @@ const Register = () => {
           requiredMark={false}
         >
           <Form.Item
-            name="username"
+            name="nickname"
             rules={[
-              { required: true, message: 'Please enter a username' },
-              { min: 3, message: 'Username must be at least 3 characters' },
+              { required: true, message: '请输入昵称' },
+              { min: 2, message: '昵称至少2个字符' },
             ]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Username"
+              placeholder="昵称"
               size="large"
             />
           </Form.Item>
@@ -55,13 +58,13 @@ const Register = () => {
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: 'Please enter a password' },
-              { min: 6, message: 'Password must be at least 6 characters' },
+              { required: true, message: '请输入密码' },
+              { min: 6, message: '密码至少6个字符' },
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Password"
+              placeholder="密码"
               size="large"
             />
           </Form.Item>
@@ -70,20 +73,20 @@ const Register = () => {
             name="confirmPassword"
             dependencies={['password']}
             rules={[
-              { required: true, message: 'Please confirm your password' },
+              { required: true, message: '请确认密码' },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
                     return Promise.resolve()
                   }
-                  return Promise.reject(new Error('Passwords do not match'))
+                  return Promise.reject(new Error('密码不匹配'))
                 },
               }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Confirm Password"
+              placeholder="确认密码"
               size="large"
             />
           </Form.Item>
@@ -91,13 +94,13 @@ const Register = () => {
           <Form.Item
             name="phone"
             rules={[
-              { required: true, message: 'Please enter your phone number' },
-              { pattern: /^\d{10,11}$/, message: 'Please enter a valid phone number' },
+              { required: true, message: '请输入手机号' },
+              { pattern: /^\d{10,11}$/, message: '请输入有效的手机号' },
             ]}
           >
             <Input
               prefix={<PhoneOutlined />}
-              placeholder="Phone Number"
+              placeholder="手机号"
               size="large"
             />
           </Form.Item>
@@ -111,14 +114,14 @@ const Register = () => {
               size="large"
               style={styles.button}
             >
-              Register
+              注册
             </Button>
           </Form.Item>
         </Form>
 
         <div style={styles.footer}>
-          <span>Already have an account? </span>
-          <Link to="/login">Login now</Link>
+          <span>已有账号？ </span>
+          <Link to="/login">立即登录</Link>
         </div>
       </Card>
     </div>
