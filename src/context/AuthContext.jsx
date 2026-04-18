@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect, useContext } from 'react'
-import { useApp } from 'antd'
 import { authApi, setAuthToken, getAuthToken, removeAuthToken, setUser, getUser, removeUser } from '../api/auth'
 
 const AuthContext = createContext(null)
@@ -8,7 +7,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUserState] = useState(null)
   const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
-  const { message } = useApp()
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -57,15 +55,15 @@ export const AuthProvider = ({ children }) => {
         setUser(userData)
         setUser(userData)
         
-        message.success('Login successful!')
+        console.log('Login successful!')
         return { success: true }
       } else {
-        message.error('Login failed: No token received')
+        console.error('Login failed: No token received')
         return { success: false }
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Login failed'
-      message.error(errorMsg)
+      console.error('Login error:', errorMsg)
       return { success: false, error: errorMsg }
     }
   }
@@ -73,11 +71,11 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, password, phone) => {
     try {
       await authApi.register(username, password, phone)
-      message.success('Registration successful! Please login.')
+      console.log('Registration successful! Please login.')
       return { success: true }
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Registration failed'
-      message.error(errorMsg)
+      console.error('Registration error:', errorMsg)
       return { success: false, error: errorMsg }
     }
   }
@@ -94,7 +92,7 @@ export const AuthProvider = ({ children }) => {
       removeUser()
       setToken(null)
       setUserState(null)
-      message.info('Logged out successfully')
+      console.log('Logged out successfully')
     }
   }
 
