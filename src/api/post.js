@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8083/api/v1',
+  baseURL: '/api/v1',
   timeout: 10000,
 })
 
@@ -183,8 +183,8 @@ export const createPost = async (title, content, category) => {
 }
 
 export const likePost = async (postId) => {
-  // 暂时返回模拟数据
-  return { success: true }
+  const response = await api.post(`/posts/${postId}/like`)
+  return response
 }
 
 export const commentPost = async (postId, content) => {

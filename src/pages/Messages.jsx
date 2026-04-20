@@ -23,11 +23,16 @@ const Messages = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/user/list')
+      const response = await fetch('/api/v1/users', {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
       const result = await response.json()
       if (result.success) {
-        // 过滤掉当前用户
-        const filteredUsers = result.data.filter(u => u.userId !== user.userId)
+        // 过滤掉当前用户 - 后端返回的是IPage对象，需要取records
+        const userList = result.data.records || result.data
+        const filteredUsers = userList.filter(u => u.userId !== user.userId)
         setUsers(filteredUsers)
       }
     } catch (error) {

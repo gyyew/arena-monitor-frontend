@@ -1,12 +1,21 @@
+/**
+ * @file Admin.jsx
+ * @description 管理后台页面组件，包含移动端优化的用户管理、帖子审核和场地管理功能
+ * @dependencies antd, @ant-design/icons
+ */
+
 import { useState, useEffect } from 'react'
 import { Card, Button, Typography, Table, Tag, message, Spin, Modal, Form, Input, Select, Switch } from 'antd'
-import { UserOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, HomeOutlined, TeamOutlined, SettingOutlined } from '@ant-design/icons'
+import { UserOutlined, DeleteOutlined, EditOutlined, TeamOutlined, HomeOutlined, SettingOutlined, CrownOutlined } from '@ant-design/icons'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
 const { Title, Text } = Typography
-const { Option } = Select
 
+/**
+ * 管理后台页面组件
+ * 移动端优化的管理员功能面板
+ */
 const Admin = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -16,16 +25,9 @@ const Admin = () => {
   const [posts, setPosts] = useState([])
   const [courts, setCourts] = useState([])
   const [selectedUser, setSelectedUser] = useState(null)
-  const [selectedPost, setSelectedPost] = useState(null)
-  const [selectedCourt, setSelectedCourt] = useState(null)
   const [showUserModal, setShowUserModal] = useState(false)
-  const [showPostModal, setShowPostModal] = useState(false)
-  const [showCourtModal, setShowCourtModal] = useState(false)
   const [userForm] = Form.useForm()
-  const [postForm] = Form.useForm()
-  const [courtForm] = Form.useForm()
 
-  // 检查用户是否为管理员
   useEffect(() => {
     if (user?.role !== 1) {
       message.error('您没有管理员权限')
@@ -33,7 +35,6 @@ const Admin = () => {
     }
   }, [user, navigate])
 
-  // 加载数据
   useEffect(() => {
     if (user?.role === 1) {
       if (activeTab === 'users') {
@@ -49,15 +50,19 @@ const Admin = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8080/api/user/list')
+      const response = await fetch('/api/v1/users', {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
       const result = await response.json()
       if (result.success) {
-        setUsers(result.data)
+        // 后端返回 IPage 对象，需要提取 records 数组
+        setUsers(result.data.records || result.data || [])
       } else {
         message.error(result.message || '获取用户列表失败')
       }
     } catch (error) {
-      message.error('获取用户列表失败，请稍后重试')
       console.error('Fetch users error:', error)
     } finally {
       setLoading(false)
@@ -67,15 +72,19 @@ const Admin = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8080/api/post/list')
+      const response = await fetch('/api/v1/posts/audit-list', {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
       const result = await response.json()
       if (result.success) {
-        setPosts(result.data)
+        // 后端返回 IPage 对象，需要提取 records 数组
+        setPosts(result.data.records || result.data || [])
       } else {
         message.error(result.message || '获取帖子列表失败')
       }
     } catch (error) {
-      message.error('获取帖子列表失败，请稍后重试')
       console.error('Fetch posts error:', error)
     } finally {
       setLoading(false)
@@ -85,15 +94,19 @@ const Admin = () => {
   const fetchCourts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8080/api/court/list')
+      const response = await fetch('/api/v1/courts', {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
       const result = await response.json()
       if (result.success) {
-        setCourts(result.data)
+        const courtList = result.data.records || result.data || []
+        setCourts(courtList)
       } else {
         message.error(result.message || '获取场地列表失败')
       }
     } catch (error) {
-      message.error('获取场地列表失败，请稍后重试')
       console.error('Fetch courts error:', error)
     } finally {
       setLoading(false)
@@ -102,13 +115,12 @@ const Admin = () => {
 
   const handleUserStatusChange = async (userId, status) => {
     try {
-      const response = await fetch('http://localhost:8080/api/user/update-status', {
-        method: 'POST',
+      const response = await fetch(`/api/v1/users/admin/disable/${userId}?status=${status ? 0 : 1}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + localStorage.getItem('token'),
         },
-        body: JSON.stringify({ userId, status: status ? 1 : 0 }),
       })
       const result = await response.json()
       if (result.success) {
@@ -118,43 +130,18 @@ const Admin = () => {
         message.error(result.message || '状态更新失败')
       }
     } catch (error) {
-      message.error('状态更新失败，请稍后重试')
       console.error('Update user status error:', error)
-    }
-  }
-
-  const handlePostStatusChange = async (postId, status) => {
-    try {
-      const response = await fetch('http://localhost:8080/api/post/update-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('token'),
-        },
-        body: JSON.stringify({ postId, status: status ? 1 : 0 }),
-      })
-      const result = await response.json()
-      if (result.success) {
-        message.success('状态更新成功')
-        fetchPosts()
-      } else {
-        message.error(result.message || '状态更新失败')
-      }
-    } catch (error) {
-      message.error('状态更新失败，请稍后重试')
-      console.error('Update post status error:', error)
     }
   }
 
   const handleDeleteUser = async (userId) => {
     try {
-      const response = await fetch('http://localhost:8080/api/user/delete', {
-        method: 'POST',
+      const response = await fetch(`/api/v1/users/admin/${userId}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + localStorage.getItem('token'),
         },
-        body: JSON.stringify({ userId }),
       })
       const result = await response.json()
       if (result.success) {
@@ -164,63 +151,143 @@ const Admin = () => {
         message.error(result.message || '用户删除失败')
       }
     } catch (error) {
-      message.error('用户删除失败，请稍后重试')
       console.error('Delete user error:', error)
     }
   }
 
-  const handleDeletePost = async (postId) => {
-    try {
-      const response = await fetch('http://localhost:8080/api/post/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('token'),
-        },
-        body: JSON.stringify({ postId }),
-      })
-      const result = await response.json()
-      if (result.success) {
-        message.success('帖子删除成功')
-        fetchPosts()
-      } else {
-        message.error(result.message || '帖子删除失败')
-      }
-    } catch (error) {
-      message.error('帖子删除失败，请稍后重试')
-      console.error('Delete post error:', error)
-    }
+  if (user?.role !== 1) {
+    return (
+      <div style={styles.noPermission}>
+        <div style={styles.noPermissionIcon}>🔒</div>
+        <Text type="secondary">您没有管理员权限</Text>
+      </div>
+    )
   }
 
+  return (
+    <div style={styles.container}>
+      {/* 页面头部 */}
+      <div style={styles.header}>
+        <div style={styles.headerContent}>
+          <SettingOutlined style={styles.headerIcon} />
+          <Title level={4} style={styles.title}>管理中心</Title>
+        </div>
+      </div>
+
+      {/* Tab切换按钮 - 移动端横向滚动 */}
+      <div style={styles.tabButtons}>
+        <Button
+          type={activeTab === 'users' ? 'primary' : 'default'}
+          icon={<TeamOutlined />}
+          onClick={() => setActiveTab('users')}
+          style={activeTab === 'users' ? styles.activeTab : styles.tabBtn}
+          size="small"
+        >
+          用户
+        </Button>
+        <Button
+          type={activeTab === 'posts' ? 'primary' : 'default'}
+          icon={<EditOutlined />}
+          onClick={() => setActiveTab('posts')}
+          style={activeTab === 'posts' ? styles.activeTab : styles.tabBtn}
+          size="small"
+        >
+          帖子
+        </Button>
+        <Button
+          type={activeTab === 'courts' ? 'primary' : 'default'}
+          icon={<HomeOutlined />}
+          onClick={() => setActiveTab('courts')}
+          style={activeTab === 'courts' ? styles.activeTab : styles.tabBtn}
+          size="small"
+        >
+          场地
+        </Button>
+      </div>
+
+      {/* 数据表格 */}
+      <Spin spinning={loading}>
+        <Card style={styles.tableCard} styles={{ body: { padding: '12px' } }}>
+          {activeTab === 'users' && (
+            <Table
+              columns={userColumns}
+              dataSource={users}
+              rowKey="userId"
+              pagination={{ pageSize: 5, size: 'small' }}
+              size="small"
+              scroll={{ x: 400 }}
+            />
+          )}
+          {activeTab === 'posts' && (
+            <Table
+              columns={postColumns}
+              dataSource={posts}
+              rowKey="postId"
+              pagination={{ pageSize: 5, size: 'small' }}
+              size="small"
+              scroll={{ x: 300 }}
+            />
+          )}
+          {activeTab === 'courts' && (
+            <Table
+              columns={courtColumns}
+              dataSource={courts}
+              rowKey="courtId"
+              pagination={{ pageSize: 5, size: 'small' }}
+              size="small"
+              scroll={{ x: 250 }}
+            />
+          )}
+        </Card>
+      </Spin>
+
+      {/* 编辑用户弹窗 */}
+      <Modal
+        title="编辑用户"
+        open={showUserModal}
+        onCancel={() => setShowUserModal(false)}
+        footer={null}
+        centered
+        width="90%"
+      >
+        <Form form={userForm} layout="vertical">
+          <Form.Item name="nickname" label="昵称" rules={[{ required: true }]}>
+            <Input style={styles.modalInput} />
+          </Form.Item>
+          <div style={styles.modalActions}>
+            <Button onClick={() => setShowUserModal(false)} style={styles.cancelBtn}>取消</Button>
+            <Button type="primary" htmlType="submit" style={styles.submitBtn}>保存</Button>
+          </div>
+        </Form>
+      </Modal>
+    </div>
+  )
+
+  // 用户列表列定义
   const userColumns = [
     {
-      title: '用户ID',
-      dataIndex: 'userId',
-      key: 'userId',
-    },
-    {
-      title: '昵称',
+      title: '用户',
       dataIndex: 'nickname',
       key: 'nickname',
-    },
-    {
-      title: '手机号',
-      dataIndex: 'phone',
-      key: 'phone',
-    },
-    {
-      title: '运动偏好',
-      dataIndex: 'sportPreference',
-      key: 'sportPreference',
-      render: (text) => text || '-',
+      render: (text, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={styles.avatarIcon}>
+            <UserOutlined />
+          </div>
+          <div>
+            <Text strong style={{ fontSize: '13px' }}>{text}</Text>
+            <Text type="secondary" style={{ display: 'block', fontSize: '11px' }}>{record.phone}</Text>
+          </div>
+        </div>
+      ),
     },
     {
       title: '角色',
       dataIndex: 'role',
       key: 'role',
       render: (role) => (
-        <Tag color={role === 1 ? 'red' : 'blue'}>
-          {role === 1 ? '管理员' : '普通用户'}
+        <Tag style={role === 1 ? styles.adminTag : styles.userTag}>
+          {role === 1 ? <><CrownOutlined /> 管理员</> : '用户'}
         </Tag>
       ),
     },
@@ -234,6 +301,7 @@ const Admin = () => {
           onChange={(checked) => handleUserStatusChange(record.userId, checked)}
           checkedChildren="正常"
           unCheckedChildren="禁用"
+          style={styles.switch}
         />
       ),
     },
@@ -241,312 +309,234 @@ const Admin = () => {
       title: '操作',
       key: 'action',
       render: (_, record) => (
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button 
-            type="default" 
-            icon={<EditOutlined />} 
-            size="small"
-            onClick={() => {
-              setSelectedUser(record)
-              userForm.setFieldsValue(record)
-              setShowUserModal(true)
-            }}
-          >
-            编辑
-          </Button>
-          <Button 
-            type="danger" 
-            icon={<DeleteOutlined />} 
-            size="small"
-            onClick={() => handleDeleteUser(record.userId)}
-          >
-            删除
-          </Button>
-        </div>
+        <Button
+          type="text"
+          icon={<DeleteOutlined />}
+          size="small"
+          danger
+          onClick={() => handleDeleteUser(record.userId)}
+        />
       ),
     },
   ]
 
+  // 帖子列表列定义
   const postColumns = [
     {
-      title: '帖子ID',
-      dataIndex: 'postId',
-      key: 'postId',
-    },
-    {
-      title: '标题',
+      title: '帖子',
       dataIndex: 'title',
       key: 'title',
-    },
-    {
-      title: '作者',
-      dataIndex: 'userNickname',
-      key: 'userNickname',
+      render: (text, record) => (
+        <div>
+          <Text strong style={{ fontSize: '13px' }}>{text}</Text>
+          <Text type="secondary" style={{ display: 'block', fontSize: '11px' }}>
+            by {record.userNickname}
+          </Text>
+        </div>
+      ),
     },
     {
       title: '分类',
       dataIndex: 'category',
       key: 'category',
-      render: (category) => <Tag>{category}</Tag>,
+      render: (category) => <Tag style={styles.categoryTag}>{category}</Tag>,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status, record) => (
-        <Switch
-          checked={status === 1}
-          onChange={(checked) => handlePostStatusChange(record.postId, checked)}
-          checkedChildren="发布"
-          unCheckedChildren="草稿"
-        />
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button 
-            type="default" 
-            icon={<EditOutlined />} 
-            size="small"
-            onClick={() => {
-              setSelectedPost(record)
-              postForm.setFieldsValue(record)
-              setShowPostModal(true)
-            }}
-          >
-            编辑
-          </Button>
-          <Button 
-            type="danger" 
-            icon={<DeleteOutlined />} 
-            size="small"
-            onClick={() => handleDeletePost(record.postId)}
-          >
-            删除
-          </Button>
-        </div>
+      render: (status) => (
+        <Tag style={status === 1 ? styles.freeTag : styles.occupiedTag}>
+          {status === 1 ? '已发布' : '待审核'}
+        </Tag>
       ),
     },
   ]
 
+  // 场地列表列定义
   const courtColumns = [
     {
-      title: '场地ID',
-      dataIndex: 'courtId',
-      key: 'courtId',
-    },
-    {
-      title: '场地名称',
+      title: '场地',
       dataIndex: 'courtName',
       key: 'courtName',
-    },
-    {
-      title: '场地类型',
-      dataIndex: 'courtType',
-      key: 'courtType',
-      render: (type) => <Tag color={type === '羽毛球' ? 'blue' : 'green'}>{type}</Tag>,
-    },
-    {
-      title: '位置',
-      dataIndex: 'location',
-      key: 'location',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button 
-            type="default" 
-            icon={<EditOutlined />} 
-            size="small"
-            onClick={() => {
-              setSelectedCourt(record)
-              courtForm.setFieldsValue(record)
-              setShowCourtModal(true)
-            }}
-          >
-            编辑
-          </Button>
+      render: (text, record) => (
+        <div>
+          <Text strong style={{ fontSize: '13px' }}>{text}</Text>
+          <Text type="secondary" style={{ display: 'block', fontSize: '11px' }}>{record.location}</Text>
         </div>
       ),
     },
+    {
+      title: '类型',
+      dataIndex: 'courtType',
+      key: 'courtType',
+      render: (type) => (
+        <Tag style={type === '羽毛球' ? styles.badmintonTag : styles.sportTag}>
+          {type}
+        </Tag>
+      ),
+    },
   ]
+}
 
-  if (user?.role !== 1) {
-    return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Text type="error">您没有管理员权限</Text>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2}>管理员后台</Title>
-
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-        <Button
-          type={activeTab === 'users' ? 'primary' : 'default'}
-          icon={<UserOutlined />}
-          onClick={() => setActiveTab('users')}
-        >
-          用户管理
-        </Button>
-        <Button
-          type={activeTab === 'posts' ? 'primary' : 'default'}
-          icon={<TeamOutlined />}
-          onClick={() => setActiveTab('posts')}
-        >
-          帖子审核
-        </Button>
-        <Button
-          type={activeTab === 'courts' ? 'primary' : 'default'}
-          icon={<HomeOutlined />}
-          onClick={() => setActiveTab('courts')}
-        >
-          场地管理
-        </Button>
-      </div>
-
-      {activeTab === 'users' && (
-        <Card>
-          <Table
-            columns={userColumns}
-            dataSource={users}
-            rowKey="userId"
-            loading={loading}
-            pagination={{ pageSize: 10 }}
-          />
-        </Card>
-      )}
-
-      {activeTab === 'posts' && (
-        <Card>
-          <Table
-            columns={postColumns}
-            dataSource={posts}
-            rowKey="postId"
-            loading={loading}
-            pagination={{ pageSize: 10 }}
-          />
-        </Card>
-      )}
-
-      {activeTab === 'courts' && (
-        <Card>
-          <Table
-            columns={courtColumns}
-            dataSource={courts}
-            rowKey="courtId"
-            loading={loading}
-            pagination={{ pageSize: 10 }}
-          />
-        </Card>
-      )}
-
-      <Modal
-        title="编辑用户"
-        open={showUserModal}
-        onCancel={() => setShowUserModal(false)}
-        footer={null}
-      >
-        <Form form={userForm} layout="vertical">
-          <Form.Item name="nickname" label="昵称" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="phone" label="手机号" rules={[{ required: true }]}>
-            <Input disabled />
-          </Form.Item>
-          <Form.Item name="sportPreference" label="运动偏好">
-            <Input />
-          </Form.Item>
-          <Form.Item name="role" label="角色">
-            <Select>
-              <Option value={0}>普通用户</Option>
-              <Option value={1}>管理员</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: '8px' }}>
-              保存
-            </Button>
-            <Button onClick={() => setShowUserModal(false)}>
-              取消
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title="编辑帖子"
-        open={showPostModal}
-        onCancel={() => setShowPostModal(false)}
-        footer={null}
-      >
-        <Form form={postForm} layout="vertical">
-          <Form.Item name="title" label="标题" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="content" label="内容" rules={[{ required: true }]}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item name="category" label="分类" rules={[{ required: true }]}>
-            <Select>
-              <Option value="羽毛球">羽毛球</Option>
-              <Option value="篮球">篮球</Option>
-              <Option value="足球">足球</Option>
-              <Option value="乒乓球">乒乓球</Option>
-              <Option value="其他">其他</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: '8px' }}>
-              保存
-            </Button>
-            <Button onClick={() => setShowPostModal(false)}>
-              取消
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title="编辑场地"
-        open={showCourtModal}
-        onCancel={() => setShowCourtModal(false)}
-        footer={null}
-      >
-        <Form form={courtForm} layout="vertical">
-          <Form.Item name="courtName" label="场地名称" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="courtType" label="场地类型" rules={[{ required: true }]}>
-            <Select>
-              <Option value="羽毛球">羽毛球</Option>
-              <Option value="篮球">篮球</Option>
-              <Option value="足球">足球</Option>
-              <Option value="乒乓球">乒乓球</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="location" label="位置" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: '8px' }}>
-              保存
-            </Button>
-            <Button onClick={() => setShowCourtModal(false)}>
-              取消
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
-  )
+/**
+ * 样式对象 - 移动端优先设计
+ */
+const styles = {
+  container: {
+    padding: '0',
+  },
+  header: {
+    background: 'linear-gradient(135deg, #CE88FF 0%, #B38DFF 100%)',
+    borderRadius: '16px',
+    padding: '20px 16px',
+    marginBottom: '16px',
+    boxShadow: '0 6px 20px rgba(206, 136, 255, 0.3)',
+  },
+  headerContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  headerIcon: {
+    fontSize: '20px',
+    color: 'white',
+  },
+  title: {
+    color: 'white',
+    margin: 0,
+    fontWeight: '700',
+    fontSize: '18px',
+  },
+  tabButtons: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '16px',
+    padding: '0 4px',
+    overflowX: 'auto',
+  },
+  tabBtn: {
+    borderRadius: '16px',
+    border: '1px solid #E2D5F5',
+    color: '#8A80A0',
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    height: '32px',
+  },
+  activeTab: {
+    borderRadius: '16px',
+    background: 'linear-gradient(135deg, #CE88FF 0%, #B38DFF 100%)',
+    border: 'none',
+    color: 'white',
+    fontWeight: '600',
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    height: '32px',
+  },
+  tableCard: {
+    borderRadius: '16px',
+    boxShadow: '0 4px 12px rgba(206, 136, 255, 0.1)',
+    border: '1px solid #E2D5F5',
+  },
+  avatarIcon: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #E8C6FF 0%, #F5EBFF 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#CE88FF',
+    fontSize: '14px',
+  },
+  adminTag: {
+    background: 'linear-gradient(135deg, #F3EC46 0%, #FBF8B3 100%)',
+    color: '#2A2438',
+    border: 'none',
+    fontWeight: '600',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  userTag: {
+    background: '#E8F5E9',
+    color: '#67E0A3',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  categoryTag: {
+    background: '#F5EBFF',
+    color: '#CE88FF',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  badmintonTag: {
+    background: '#F5EBFF',
+    color: '#CE88FF',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  sportTag: {
+    background: '#E8F5E9',
+    color: '#67E0A3',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  occupiedTag: {
+    background: 'rgba(249, 100, 194, 0.15)',
+    color: '#F964C2',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  freeTag: {
+    background: 'rgba(103, 224, 163, 0.15)',
+    color: '#67E0A3',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
+  switch: {
+    '--antd-switch-bg': '#67E0A3',
+  },
+  noPermission: {
+    textAlign: 'center',
+    padding: '80px 20px',
+  },
+  noPermissionIcon: {
+    fontSize: '40px',
+    marginBottom: '12px',
+  },
+  modalInput: {
+    borderRadius: '10px',
+    border: '1.5px solid #E2D5F5',
+    height: '40px',
+    fontSize: '14px',
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+    marginTop: '16px',
+  },
+  cancelBtn: {
+    borderRadius: '16px',
+    border: '1px solid #E2D5F5',
+    color: '#8A80A0',
+    fontSize: '13px',
+    height: '36px',
+  },
+  submitBtn: {
+    borderRadius: '16px',
+    background: 'linear-gradient(135deg, #CE88FF 0%, #B38DFF 100%)',
+    border: 'none',
+    fontWeight: '600',
+    fontSize: '13px',
+    height: '36px',
+  },
 }
 
 export default Admin

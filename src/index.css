@@ -1,3 +1,457 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * @file index.css
+ * @description 全局样式文件，包含紫粉少女风设计系统、移动端适配样式
+ * @dependencies Tailwind CSS
+ */
+
+/**
+ * CSS变量 - 紫粉少女风设计系统
+ */
+:root {
+  /* 主色调 */
+  --primary: #CE88FF;
+  --primary-light: #E8C6FF;
+  --primary-bg: #F5EBFF;
+
+  /* 按钮强调色 */
+  --btn-main: #F3EC46;
+  --btn-light: #FBF8B3;
+
+  /* 功能色 */
+  --danger: #F964C2;
+  --warning: #38CEC4;
+  --success: #67E0A3;
+  --link: #B38DFF;
+
+  /* 文字颜色 */
+  --text-title: #2A2438;
+  --text-main: #443B58;
+  --text-secondary: #8A80A0;
+  --text-light: #B4A8CC;
+
+  /* 背景色 */
+  --bg-page: #FCFAFF;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F1E8FF;
+  --border-color: #E2D5F5;
+
+  /* 移动端断点 */
+  --mobile-width: 480px;
+  --tablet-width: 768px;
+}
+
+/**
+ * 基础样式重置
+ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  /* 移动端基础字体 */
+}
+
+body {
+  font-family: "PingFang SC", "Microsoft Yahei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #FCFAFF 0%, #F5EBFF 50%, #F1E8FF 100%);
+  min-height: 100vh;
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/**
+ * 移动端安全区域适配
+ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/**
+ * 移动端布局容器 - 限制最大宽度
+ */
+.mobile-container {
+  max-width: var(--mobile-width);
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/**
+ * 移动端卡片样式
+ */
+.card-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 20px rgba(206, 136, 255, 0.12);
+  border-radius: 18px;
+}
+
+.card-style {
+  background: var(--bg-card);
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(206, 136, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-style:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(206, 136, 255, 0.2);
+  border-color: var(--primary-light);
+}
+
+/**
+ * 按钮样式
+ */
+.btn-primary {
+  background: linear-gradient(135deg, #CE88FF 0%, #B38DFF 100%);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(206, 136, 255, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-highlight {
+  background: linear-gradient(135deg, #F3EC46 0%, #FBF8B3 100%);
+  color: var(--text-title);
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.btn-highlight:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(243, 236, 70, 0.5);
+}
+
+.btn-highlight:active {
+  transform: scale(0.98);
+}
+
+/**
+ * 标签样式
+ */
+.tag-style {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/**
+ * 输入框样式
+ */
+.input-style {
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.input-style:hover,
+.input-style:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(206, 136, 255, 0.15);
+}
+
+/**
+ * 渐变文字
+ */
+.font-gradient {
+  background: linear-gradient(135deg, #CE88FF 0%, #B38DFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/**
+ * 滚动条样式
+ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/**
+ * Ant Design 组件移动端适配覆盖
+ */
+.ant-btn-primary {
+  border-radius: 24px !important;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+.ant-card {
+  border-radius: 18px !important;
+}
+
+.ant-input,
+.ant-input-affix-wrapper {
+  border-radius: 12px !important;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+.ant-input-lg {
+  min-height: 52px !important;
+  font-size: 16px !important;
+}
+
+.ant-select-selector {
+  border-radius: 12px !important;
+  min-height: 44px !important;
+}
+
+.ant-form-item-label > label {
+  font-size: 14px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.ant-tabs-tab {
+  padding: 12px 16px !important;
+  font-size: 14px;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--primary) !important;
+}
+
+.ant-modal-content {
+  border-radius: 20px !important;
+  margin: 16px;
+}
+
+.ant-modal-body {
+  padding: 20px;
+}
+
+.ant-table {
+  font-size: 13px;
+}
+
+.ant-table-thead > tr > th {
+  font-size: 13px;
+  padding: 12px 8px !important;
+}
+
+.ant-table-tbody > tr > td {
+  padding: 12px 8px !important;
+}
+
+.ant-pagination {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ant-pagination-item {
+  min-width: 32px !important;
+  height: 32px !important;
+  line-height: 30px !important;
+}
+
+/**
+ * 动画
+ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(206, 136, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(206, 136, 255, 0.5);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/**
+ * 移动端媒体查询
+ */
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .ant-modal-content {
+    border-radius: 16px 16px 0 0 !important;
+    margin: 0;
+    margin-top: 20vh;
+    max-height: 80vh;
+  }
+
+  .ant-drawer-content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* 移动端表格横向滚动处理 */
+  .ant-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .ant-table {
+    min-width: 600px;
+  }
+
+  /* 移动端按钮优化 */
+  .ant-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+  }
+
+  /* 移动端卡片优化 */
+  .ant-card {
+    border-radius: 16px !important;
+  }
+
+  /* 移动端表单优化 */
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  /* 移动端Tabs优化 */
+  .ant-tabs-nav {
+    margin-bottom: 16px;
+  }
+
+  .ant-tabs-tab {
+    padding: 8px 12px !important;
+    font-size: 13px;
+  }
+}
+
+/**
+ * 平板适配
+ */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/**
+ * 桌面端最大宽度限制
+ */
+@media screen and (min-width: 1200px) {
+  .desktop-max-width {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+
+/**
+ * 触摸友好优化
+ */
+@media (hover: none) and (pointer: coarse) {
+  /* 触摸设备优化 */
+  .ant-btn,
+  .ant-card,
+  .ant-list-item,
+  .ant-table-tbody > tr > td {
+    -webkit-tap-highlight-color: rgba(206, 136, 255, 0.2);
+  }
+
+  .ant-btn:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+/**
+ * 底部安全区域处理
+ */
+.safe-area-bottom {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.safe-area-top {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+}
+
+/**
+ * 移动端隐藏桌面端元素
+ */
+@media screen and (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/**
+ * 桌面端隐藏移动端元素
+ */
+@media screen and (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
